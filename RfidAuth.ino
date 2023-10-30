@@ -3,6 +3,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoWebsockets.h>
+#include <cstring>
 
 // Use this as client when you're requesting data from an HTTPS server.
 // #include <ESP8266WebServerSecure.h>
@@ -21,7 +22,7 @@ MFRC522::MIFARE_Key key;
 #define websocket_server_out    "ws://localhost:8080/websocket/scanner/out"
 
 // Set websocket client.
-websockets::WebsocketsClient websocket_client;
+websockets::WebsocketsClient ws_client;
 // * ESP8266 WIFI CONFIGURATION END
 
 void setup()
@@ -74,24 +75,19 @@ void setup()
     
     // * Websocket Configuration
     // * By default, it will connect to the server at "ws://localhost:8080/websocket/scanner/in" where student attendance will be stored as they arrive.  
-    websocket_client.onMessage(on_message_callback);
-    websocket_client.onEvent(on_events_callback);
+    ws_client.onMessage(on_message_callback);
+    ws_client.onEvent(on_events_callback);
 
     // Connect to a server
-    websocket_client.connect(websocket_server_in);
+    ws_client.connect(websocket_server_in);
 
-    // Send test message
-    websocket_client.send("Test Message");
-
-    // Send ping
-    websocket_client.ping();
     delay(100);
 }
 
 void loop()
 {
     // ! Check for messages and events
-    websocket_client.poll();
+    ws_client.poll();
 
     // Check if the connection was lost.
     if (WiFi.status() == WL_DISCONNECTED)
@@ -153,7 +149,13 @@ void loop()
 }
 
 void on_message_callback(websockets::WebsocketsMessage message) {
-    Serial.println(message.data());
+    String status = message.data();
+    if (status == "true") {
+        Serial.println("Attendance Successful");
+        return;
+    }
+
+    Serial.println("No Attendance");
 }
 
 void on_events_callback(websockets::WebsocketsEvent event, String data) {
@@ -173,7 +175,7 @@ void on_events_callback(websockets::WebsocketsEvent event, String data) {
  *
  * @param hashedLRN The hashed Local Registration Number of the student.
  *
- * @return True if the attendance is successfully added, false otherwise.
+ * @return True if the request was success, false otherwise.
  *
  * @throws ErrorType If there is an error while adding the attendance.
  */
@@ -186,8 +188,9 @@ boolean addAttendance(String hashedLRN)
     }
 
     // Send request to the server.
+    ws_client.send(hashedLRN);
 
-    return false;
+    return true;
 }
 
 String hexStringToString(const String &hexString)
