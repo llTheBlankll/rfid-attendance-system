@@ -84,6 +84,18 @@ void setup()
     delay(100);
 }
 
+/**
+ * The `loop` function is the main entry point for the program and is executed repeatedly.
+ * It performs the following tasks:
+ *  - Checks for messages and events from the WebSocket client.
+ *  - Reconnects WiFi if the connection is lost.
+ *  - Detects if a new RFID card is present and prints a message.
+ *  - Authenticates the RFID card using the specified authentication key and reads data from the card.
+ *  - Sends a request to the server with the read data.
+ *  - Halts the RFID card and stops the crypto1 communication protocol.
+ *
+ * @throws None
+ */
 void loop()
 {
     // ! Check for messages and events
@@ -158,6 +170,16 @@ void on_message_callback(websockets::WebsocketsMessage message) {
     Serial.println("No Attendance");
 }
 
+/**
+ * A callback function that handles different events in the websockets.
+ *
+ * @param event The type of event that occurred.
+ * @param data Additional data associated with the event.
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void on_events_callback(websockets::WebsocketsEvent event, String data) {
     if (event == websockets::WebsocketsEvent::ConnectionOpened) {
         Serial.println("Connnection Opened");
@@ -193,6 +215,15 @@ boolean addAttendance(String hashedLRN)
     return true;
 }
 
+/**
+ * Converts a hexadecimal string to a regular string.
+ *
+ * @param hexString the hexadecimal string to convert
+ *
+ * @return the converted string
+ *
+ * @throws ErrorType if there is an error during the conversion
+ */
 String hexStringToString(const String &hexString)
 {
     String result = "";
@@ -206,6 +237,16 @@ String hexStringToString(const String &hexString)
     return result;
 }
 
+/**
+ * Dumps the contents of a byte array to the serial monitor.
+ *
+ * @param buffer The byte array to be dumped.
+ * @param bufferSize The size of the byte array.
+ *
+ * @return None.
+ *
+ * @throws None.
+ */
 void dump_byte_array(byte *buffer, byte bufferSize)
 {
     for (byte i = 0; i < bufferSize; i++)
@@ -215,6 +256,16 @@ void dump_byte_array(byte *buffer, byte bufferSize)
     }
 }
 
+/**
+ * Converts a byte array to a string.
+ *
+ * @param array The byte array to be converted.
+ * @param size The size of the byte array.
+ *
+ * @return The converted string.
+ *
+ * @throws None.
+ */
 String byteArrayToString(byte *array, int size)
 {
     String str = "";
