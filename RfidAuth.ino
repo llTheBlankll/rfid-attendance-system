@@ -17,8 +17,8 @@ MFRC522::MIFARE_Key key;
 // * ESP8266 WIFI CONFIGURATION
 #define ssid        "PLDTHOMEFIBR9u7w4"
 #define pass        "PLDTWIFIkr39h"
-#define websocket_server_in     "http://localhost/websocket/scanner/in"
-#define websocket_server_out    "http://localhost/websocket/scanner/out"
+#define websocket_server_in     "ws://localhost:8080/websocket/scanner/in"
+#define websocket_server_out    "ws://localhost:8080/websocket/scanner/out"
 
 // Set websocket client.
 websockets::WebsocketsClient websocket_client;
@@ -71,11 +71,28 @@ void setup()
     }
 
     // Set delay for stability and gives time for the microcontroller to initialize.
+    
+    // * Websocket Configuration
+    // * By default, it will connect to the server at "ws://localhost:8080/websocket/scanner/in" where student attendance will be stored as they arrive.  
+    websocket_client.onMessage(on_message_callback);
+    websocket_client.onEvent(on_events_callback);
+
+    // Connect to a server
+    websocket_client.connect(websocket_server_in);
+
+    // Send test message
+    websocket_client.send("Test Message");
+
+    // Send ping
+    websocket_client.ping();
     delay(100);
 }
 
 void loop()
 {
+    // ! Check for messages and events
+    websocket_client.poll();
+
     // Check if the connection was lost.
     if (WiFi.status() == WL_DISCONNECTED)
     {
@@ -133,6 +150,22 @@ void loop()
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
     delay(50);
+}
+
+void on_message_callback(websockets::WebsocketsMessage message) {
+    Serial.println(message.data());
+}
+
+void on_events_callback(websockets::WebsocketsEvent event, String data) {
+    if (event == websockets::WebsocketsEvent::ConnectionOpened) {
+        Serial.println("Connnection Opened");
+    } else if (event == websockets::WebsocketsEvent::ConnectionClosed) {
+        Serial.println("Connnection Closed");
+    } else if (event == websockets::WebsocketsEvent::GotPing) {
+        Serial.println("Got a Ping!");
+    } else if (event == websockets::WebsocketsEvent::GotPong) {
+        Serial.println("Got a Pong!");
+    }
 }
 
 /**
