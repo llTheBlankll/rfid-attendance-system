@@ -107,10 +107,13 @@ void loop()
         WiFi.reconnect();
     }
 
-    if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial())
+    if (!rfid.PICC_IsNewCardPresent())
     {
-        Serial.println();
-        Serial.println("RFID Card Detected");
+        return;
+    }
+
+    if (!rfid.PICC_ReadCardSerial()) {
+        return;
     }
 
     // Read Block 1
